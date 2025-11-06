@@ -10,23 +10,33 @@ import {
   SheetTitle, 
   SheetTrigger 
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react"; 
+import { LogIn, Menu } from "lucide-react"; 
 import Link from "next/link";
 
 export function Header() {
     const [isOpen, setIsOpen] = useState(false)
 
+    const session = null;
     const Items = [{href: '/profissionais',label: 'Profissionais'}]
     const Nav = () => (
         <>
         {Items.map((item) => (
             <Button key={item.href} asChild className="bg-transparent hover:bg-transparent text-black shadow-none" 
             onClick={()=> setIsOpen(false)}>
-                <Link href={item.href}>
+                <Link href={item.href} className="text-base">
                 {item.label}
                 </Link>
             </Button>
         ))}
+
+        {session? (
+            <Link href='/dashboard'>
+                Acessar Clínica
+            </Link>
+        ) : <Button>
+            <LogIn/>
+            Fazer Login
+            </Button>}
         </>
     )
 
