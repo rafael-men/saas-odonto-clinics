@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/sheet";
 import { LogIn, Menu } from "lucide-react"; 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export function Header() {
+    const {data: session, status} = useSession();
     const [isOpen, setIsOpen] = useState(false)
 
-    const session = null;
     const Items = [{href: '/profissionais',label: 'Profissionais'}]
     const Nav = () => (
         <>
