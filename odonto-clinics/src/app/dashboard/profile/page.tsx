@@ -10,11 +10,14 @@ export default async function Profile() {
         redirect('/');  
       }
       const user = await getUser({
-        userId: session.user?.id 
+        userId: session.user?.id as string
       })
 
+      if(!user) {
+        redirect('/');
+      }
 
     return (
-        <ProfileContent/>
+        <ProfileContent user={user}/>
     )
 }

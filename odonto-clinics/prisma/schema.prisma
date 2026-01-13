@@ -67,6 +67,7 @@ model User {
   phone         String? @default("")
   status        Boolean @default(true)
   timeZone      String?
+  times         String[]
   accounts      Account[]
   sessions      Session[]
   Authenticator Authenticator[]
