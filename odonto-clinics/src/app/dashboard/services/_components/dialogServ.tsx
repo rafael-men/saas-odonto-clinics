@@ -1,13 +1,69 @@
 'use client';
 
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useDialogServForm } from "./dialogServForm";
+import { DialogServFormData, useDialogServForm } from "./dialogServForm";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { currencyConverter } from '@/utils/currencyConverter';
+import { createService } from "../_actions/createService";
+import { useState } from "react";
+import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function DialogServ() {
+interface DialogServProps {
+    onSuccess?: () => void;
+}
+
+export function DialogServ({ onSuccess }: DialogServProps) {
     const form = useDialogServForm();
+    const [isLoading, setIsLoading] = useState(false);
+    const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
+
+    async function onsubmit(values: DialogServFormData) {
+        setIsLoading(true);
+        setFeedback(null);
+
+        const priceinCents = currencyConverter(values.price);
+        const hours = parseInt(values.hours) || 0;
+        const minutes = parseInt(values.minutes) || 0;
+        const totalDur = (hours * 60) + minutes;
+
+        try {
+            const response = await createService({
+                name: values.name,
+                price: priceinCents,
+                duration: totalDur
+            });
+
+            if (response.success) {
+                setFeedback({ type: 'success', message: response.message || 'Serviço adicionado!' });
+                form.reset();
+                setTimeout(() => {
+                    onSuccess?.();
+                }, 1500);
+            } else {
+                setFeedback({ type: 'error', message: response.error || 'Erro ao adicionar serviço' });
+            }
+        } catch (error) {
+            setFeedback({ type: 'error', message: 'Erro inesperado. Tente novamente.' });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    function ChangeCurrency(event: React.ChangeEvent<HTMLInputElement>) {
+        let { value } = event.target;
+        value = value.replace(/\D/g, '');
+        if(value) {
+            value = (parseInt(value) / 100).toFixed(2);
+            value = value.replace('.', ',');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        event.target.value = value;
+        form.setValue('price', value);
+    }
     return (
         <>
         <DialogHeader>
@@ -17,7 +73,7 @@ export function DialogServ() {
 
 
          <Form {...form}>
-            <form className="space-y-2">
+            <form className="space-y-2" onSubmit={form.handleSubmit(onsubmit)}>
                 <div className="flex flex-col">
                     <FormField
                         control={form.control}
@@ -40,7 +96,7 @@ export function DialogServ() {
                             <FormItem className="my-2">
                                 <FormLabel className="font-semibold">Valor do Serviço</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ex: 120,00" {...field}/>
+                                    <Input placeholder="Ex: 120,00" {...field}  onChange={ChangeCurrency}/>
                                 </FormControl>
                                 <FormMessage/>
                             </FormItem>
@@ -79,8 +135,35 @@ export function DialogServ() {
                         )}
                         />
                 </div>
-                <Button type="submit" className="w-full font-semibold bg-black text-white">
-                    Adicionar o Serviço
+                {/* Feedback de sucesso ou erro */}
+                {feedback && (
+                    <div className={cn(
+                        "flex items-center gap-2 p-3 rounded-lg text-sm",
+                        feedback.type === 'success'
+                            ? "bg-green-50 text-green-800 border border-green-200"
+                            : "bg-red-50 text-red-800 border border-red-200"
+                    )}>
+                        {feedback.type === 'success'
+                            ? <CheckCircle2 className="w-4 h-4" />
+                            : <XCircle className="w-4 h-4" />
+                        }
+                        <span>{feedback.message}</span>
+                    </div>
+                )}
+
+                <Button
+                    type="submit"
+                    className="w-full font-semibold bg-black text-white"
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Adicionando...
+                        </>
+                    ) : (
+                        'Adicionar o Serviço'
+                    )}
                 </Button>
             </form>
         </Form>
