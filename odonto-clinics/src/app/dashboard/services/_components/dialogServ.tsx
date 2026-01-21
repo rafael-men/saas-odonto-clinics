@@ -7,18 +7,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { currencyConverter } from '@/utils/currencyConverter';
 import { createService } from "../_actions/createService";
+import { updateService } from "../_actions/updateService";
 import { useState } from "react";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DialogServProps {
     onSuccess?: () => void;
+    serviceId?: string | null;
+    initialValues?: {
+        name: string;
+        price: string;
+        hours: string;
+        minutes: string;
+    };
 }
 
-export function DialogServ({ onSuccess }: DialogServProps) {
-    const form = useDialogServForm();
+export function DialogServ({ onSuccess, serviceId, initialValues }: DialogServProps) {
+    const form = useDialogServForm({initialValues});
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
+
+    const isEditing = !!serviceId;
 
     async function onsubmit(values: DialogServFormData) {
         setIsLoading(true);
@@ -30,20 +40,37 @@ export function DialogServ({ onSuccess }: DialogServProps) {
         const totalDur = (hours * 60) + minutes;
 
         try {
-            const response = await createService({
-                name: values.name,
-                price: priceinCents,
-                duration: totalDur
-            });
+            let response;
+
+            if (isEditing && serviceId) {
+                response = await updateService({
+                    serviceId: serviceId,
+                    name: values.name,
+                    price: priceinCents,
+                    duration: totalDur
+                });
+            } else {
+                response = await createService({
+                    name: values.name,
+                    price: priceinCents,
+                    duration: totalDur
+                });
+            }
 
             if (response.success) {
-                setFeedback({ type: 'success', message: response.message || 'Serviço adicionado!' });
-                form.reset();
+                setFeedback({
+                    type: 'success',
+                    message: response.message || (isEditing ? 'Serviço atualizado!' : 'Serviço adicionado!')
+                });
+                if (!isEditing) form.reset();
                 setTimeout(() => {
                     onSuccess?.();
                 }, 1500);
             } else {
-                setFeedback({ type: 'error', message: response.error || 'Erro ao adicionar serviço' });
+                setFeedback({
+                    type: 'error',
+                    message: response.error || (isEditing ? 'Erro ao atualizar serviço' : 'Erro ao adicionar serviço')
+                });
             }
         } catch (error) {
             setFeedback({ type: 'error', message: 'Erro inesperado. Tente novamente.' });
@@ -67,8 +94,10 @@ export function DialogServ({ onSuccess }: DialogServProps) {
     return (
         <>
         <DialogHeader>
-            <DialogTitle>Novo Serviço</DialogTitle>
-            <DialogDescription>Adicione um Serviço Realizado pela Clínica</DialogDescription>
+            <DialogTitle>{isEditing ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
+            <DialogDescription>
+                {isEditing ? 'Altere as informações do serviço' : 'Adicione um Serviço Realizado pela Clínica'}
+            </DialogDescription>
         </DialogHeader>
 
 
@@ -135,7 +164,6 @@ export function DialogServ({ onSuccess }: DialogServProps) {
                         )}
                         />
                 </div>
-                {/* Feedback de sucesso ou erro */}
                 {feedback && (
                     <div className={cn(
                         "flex items-center gap-2 p-3 rounded-lg text-sm",
@@ -159,10 +187,10 @@ export function DialogServ({ onSuccess }: DialogServProps) {
                     {isLoading ? (
                         <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Adicionando...
+                            {isEditing ? 'Salvando...' : 'Adicionando...'}
                         </>
                     ) : (
-                        'Adicionar o Serviço'
+                        isEditing ? 'Salvar Alterações' : 'Adicionar o Serviço'
                     )}
                 </Button>
             </form>

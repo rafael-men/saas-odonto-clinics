@@ -9,7 +9,7 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Dia
 import Image from "next/image";
 import Foto from  '../../../../../public/dentista-concentrada-em-um-check-up-dentario_1153-666.jpg';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle2, XCircle, DoorClosed } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -17,6 +17,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { updateProfile } from "../_actions/update_prof";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type User = Prisma.UserGetPayload<{}>;
 
@@ -47,12 +49,13 @@ interface ProfileContentProps {
 }
 
 export default function ProfileContent({user}: ProfileContentProps) {
+    const router = useRouter();
     const [selectedHours, setSelectedHours] = useState<string[]>(user.times ?? []);
     const [dialogOpen, setDialogOpen] = useState(false);
-
-
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
+    const { update } = useSession();
+  
 
     const form = useForm({
         resolver: zodResolver(profileSchema),
@@ -65,6 +68,12 @@ export default function ProfileContent({user}: ProfileContentProps) {
             timeZone: user.timeZone || ''
         }
     });
+
+    async function handleLogout() {
+        await signOut();
+        await update();
+        router.replace('/');
+    }
 
 
     function generateTimeSlots() {
@@ -278,7 +287,7 @@ export default function ProfileContent({user}: ProfileContentProps) {
                                     )}
                                 />
 
-                                {/* Feedback de sucesso ou erro */}
+                             
                                 {feedback && (
                                     <div className={cn(
                                         "flex items-center gap-2 p-4 rounded-lg",
@@ -306,6 +315,14 @@ export default function ProfileContent({user}: ProfileContentProps) {
                                     ) : (
                                         'Salvar Alterações'
                                     )}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="w-full bg-red-500 text-white hover:bg-red-800 transition-colors"
+                                    onClick={() => handleLogout()}
+                                >
+                                    <DoorClosed className="w-4 h-4"/>
+                                    Fazer Logout
                                 </Button>
                             </div>
                         </CardContent>

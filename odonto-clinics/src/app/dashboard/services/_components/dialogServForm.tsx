@@ -21,10 +21,10 @@ export interface DialogServFormProps {
 
 export type DialogServFormData = z.infer<typeof dialogServFormSchema>;
 
-export function useDialogServForm() {
+export function useDialogServForm({ initialValues }: DialogServFormProps ) {
     return useForm<DialogServFormData>({
         resolver: zodResolver(dialogServFormSchema),
-        defaultValues: {
+        defaultValues: initialValues || {
             name: '',
             price: '',
             hours: '',
