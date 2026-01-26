@@ -1,3 +1,5 @@
+'use client'
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { time } from 'console';
 import { useForm } from 'react-hook-form';

@@ -14,6 +14,6 @@ export default async function SchedulePage({params,}: {params: Promise<{id:strin
     }
 
     return (
-        <ScheduleContent/>
+        <ScheduleContent clinica={user}/>
     )
 }
