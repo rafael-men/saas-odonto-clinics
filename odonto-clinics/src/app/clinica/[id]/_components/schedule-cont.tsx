@@ -2,16 +2,19 @@
 
 import Image from "next/image";
 import Test from '../../../../../public/foto1.png';
-import { MapPin, Clock, DollarSign } from "lucide-react";
+import { MapPin, Clock, DollarSign, CreditCard, QrCode, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Prisma } from "@/generated/prisma/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ScheduleForm } from "./schedule-form";
+import { AppointmentFormData, ScheduleForm } from "./schedule-form";
 import { DateTimePicker } from "./datePicker";
 import 'react-datepicker/dist/react-datepicker.css'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { useCallback, useEffect, useState } from "react";
+import { ScheduleTime } from "./schedule-time";
+import { createAppointment } from "../_actions/create-appointment";
 
 
 
@@ -25,50 +28,153 @@ interface scheduleContentProps {
     clinica: UserWithService
 }
 
+export interface TimeSlot {
+    time: string;
+    available: boolean;
+}
+
+const PAYMENT_OPTIONS = [
+    {
+        value: 'pix',
+        label: 'PIX',
+        description: 'Pagamento via PIX',
+        icon: QrCode,
+    },
+    {
+        value: 'credito',
+        label: 'Crédito',
+        description: 'Até 10x sem juros',
+        icon: CreditCard,
+    },
+]
+
 export function ScheduleContent({clinica}: scheduleContentProps) {
     const form = ScheduleForm();
+    const { watch } = form;
+    const [selectedTime, setSelectedTime] = useState('');
+    const [avTimeSlots, setAvTimeSlots] = useState<TimeSlot[]>([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [blockedTimes, setBlockedTimes] = useState<string[]>([]);
+    const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const selectedDate = watch('date');
+    const selectedServiceId = watch('serviceId');
+    const selectedPayment = watch('paymentForm');
+
 
     function formatPhone(value: string) {
-    const numbers = value.replace(/\D/g, '').slice(0, 11);
-    
-    if (numbers.length <= 10) {
-        return numbers
-            .replace(/^(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{4})(\d)/, '$1-$2');
-    } else {
-        return numbers
-            .replace(/^(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2');
+        const numbers = value.replace(/\D/g, '').slice(0, 11);
+
+        if (numbers.length <= 10) {
+            return numbers
+                .replace(/^(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        } else {
+            return numbers
+                .replace(/^(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2');
+        }
     }
-}
+
+
+    const fetchBlockedTimes = useCallback(async (date: Date): Promise<string[]> => {
+        setLoadingSlots(true);
+        try {
+            const dateString = date.toISOString().split('T')[0];
+            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/schedule/get-appointments?user-id=${clinica.id}&date=${dateString}`);
+
+            const json = await response.json();
+            setLoadingSlots(false);
+            return json;
+        }
+        catch(err) {
+            return [];
+        } finally {
+            setLoadingSlots(false);
+        }
+    },[clinica.id])
+
+    useEffect(()=>{
+        if(selectedDate) {
+            fetchBlockedTimes(selectedDate).then((blocked) => {
+                setBlockedTimes(blocked);
+                const times = clinica.times || [];
+                const finalSlots = times.map((time)=>({
+                    time: time,
+                    available: !blocked.includes(time)
+                }))
+
+                setAvTimeSlots(finalSlots);
+            });
+        }
+    },[clinica.times, fetchBlockedTimes,selectedTime])
+
+    async function handleSchedule(FormData: AppointmentFormData) {
+        setAlert(null);
+
+        if(!selectedTime) {
+            setAlert({ type: 'error', message: 'Selecione um horário para o agendamento.' });
+            return;
+        }
+
+        setSubmitting(true);
+
+        try {
+            const response = await createAppointment({
+                name: FormData.name,
+                email: FormData.email,
+                phone: FormData.phone,
+                time: selectedTime,
+                date: FormData.date.toISOString(),
+                serviceId: FormData.serviceId,
+                clinicaId: clinica.id,
+                paymentForm: FormData.paymentForm,
+            })
+
+            if (response?.error) {
+                setAlert({ type: 'error', message: response.error });
+            } else {
+                setAlert({ type: 'success', message: 'Agendamento realizado com sucesso!' });
+                form.reset();
+                setSelectedTime('');
+            }
+        } catch {
+            setAlert({ type: 'error', message: 'Erro inesperado ao agendar. Tente novamente.' });
+        } finally {
+            setSubmitting(false);
+        }
+    }
 
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <section className="h-32 bg-black"/>
-            <section className="container mx-auto px-4 -mt-16">
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <section className="h-36 bg-gradient-to-r from-blue-700 to-slate-800"/>
+            <section className="container mx-auto px-4 -mt-20">
                 <div className="max-w-2xl mx-auto">
                     <div className="flex flex-col items-center">
-                            <div className="relative w-48 h-48 rounded-full overflow-hidden border-4 mb-8">
+                            <div className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4">
                                 <Image src={ clinica.image ? clinica.image : Test} alt='clinica' className="object-cover" fill/>
                             </div>
-                            <h1 className="text-2xl font-bold">{clinica.name}</h1>
-                            <div className="flex items-center gap-1">
-                                <MapPin className="w-5 h-5"/>
-                                <span>{clinica.address}</span>
+                            <h1 className="text-2xl font-bold text-gray-900">{clinica.name}</h1>
+                            <div className="flex items-center gap-1 text-gray-500 mt-1">
+                                <MapPin className="w-4 h-4"/>
+                                <span className="text-sm">{clinica.address}</span>
                             </div>
                     </div>
                 </div>
             </section>
 
-            <section className="max-w-2xl mx-auto w-full mt-6">
+            <section className="max-w-2xl mx-auto w-full mt-8 pb-12">
             <Form {...form}>
-                <form className="mx-4 space-y-6 bg-white p-6 rounded-xl border shadow-sm">
+                <form onSubmit={form.handleSubmit(handleSchedule)} className="mx-4 space-y-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+
+                    <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Dados do Paciente</h2>
+
                     <FormField control={form.control} name="name" render={({field}) => (
-                        <FormItem className="my-2">
-                            <FormLabel className="font-semibold">Nome do Paciente</FormLabel>
+                        <FormItem>
+                            <FormLabel className="font-semibold text-gray-700">Nome Completo</FormLabel>
                             <FormControl>
-                            <Input id="name" placeholder="digite seu nome completo"
+                            <Input id="name" placeholder="Digite seu nome completo"
                             {...field} />
                             </FormControl>
                             <FormMessage/>
@@ -76,10 +182,10 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                     )}/>
 
                      <FormField control={form.control} name="email" render={({field}) => (
-                        <FormItem className="my-2">
-                            <FormLabel className="font-semibold">Email do Paciente</FormLabel>
+                        <FormItem>
+                            <FormLabel className="font-semibold text-gray-700">E-mail</FormLabel>
                             <FormControl>
-                            <Input id="email" placeholder="digite seu email"
+                            <Input id="email" type="email" placeholder="exemplo@email.com"
                             {...field} />
                             </FormControl>
                             <FormMessage/>
@@ -87,10 +193,10 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                     )}/>
 
                      <FormField control={form.control} name="phone" render={({field}) => (
-                        <FormItem className="my-2">
-                            <FormLabel className="font-semibold">Telefone</FormLabel>
+                        <FormItem>
+                            <FormLabel className="font-semibold text-gray-700">Telefone</FormLabel>
                             <FormControl>
-                            <Input id="phone" placeholder="(XX) XXXXX-XXXX)"
+                            <Input id="phone" placeholder="(XX) XXXXX-XXXX"
                             {...field} onChange={(e) => {
                                 const formattedValue = formatPhone(e.target.value);
                                 field.onChange(formattedValue);
@@ -100,14 +206,17 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                         </FormItem>
                     )}/>
 
+                    <div className="border-t pt-5">
+                        <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Agendamento</h2>
+                    </div>
 
                      <FormField control={form.control} name="date" render={({field}) => (
                         <FormItem className="flex items-center gap-2 space-y-1">
-                            <FormLabel className="font-semibold">Data do Agendamento</FormLabel>
+                            <FormLabel className="font-semibold text-gray-700">Data</FormLabel>
                             <FormControl >
                             <DateTimePicker
                             initialDate={new Date()}
-                            className="w-full rounded borde p-3"
+                            className="w-full rounded border p-3"
                             onChange={(date) => {
                                 if(date) {
                                     field.onChange(date);
@@ -121,12 +230,12 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
 
 
                      <FormField control={form.control} name="serviceId" render={({field}) => (
-                        <FormItem className="my-2">
-                            <FormLabel className="font-semibold">Selecione o Serviço a ser Realizado</FormLabel>
+                        <FormItem>
+                            <FormLabel className="font-semibold text-gray-700">Serviço</FormLabel>
                             <FormControl>
                             <Select onValueChange={field.onChange}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder='selecione um dos serviços'/>
+                                    <SelectValue placeholder='Selecione um dos serviços'/>
                                 </SelectTrigger>
                                 <SelectContent className="max-h-64">
                                     {clinica.services.map((service) => (
@@ -153,8 +262,115 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                         </FormItem>
                     )}/>
 
+                    {selectedServiceId && (
+                        <div className="space-y-2">
+                            <Label className="font-semibold text-gray-700">
+                                Horários Disponíveis
+                            </Label>
+                            <div className="bg-gray-100 p-4 rounded-lg border border-gray-200">
+                                {loadingSlots ? (
+                                    <div className="flex items-center justify-center gap-2 py-4 text-gray-500">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Carregando horários...</span>
+                                    </div>
+                                ) : avTimeSlots.length === 0 ?
+                                (
+                                    <p className="text-center text-gray-500 py-4">Nenhum horário disponível para esta data</p>
+                                ) :
+                                (
+                                    <ScheduleTime
+                                    onSelectedTime={(time) => setSelectedTime(time)}
+                                    selectedDate={selectedDate}
+                                    selectedTime={selectedTime}
+                                    requiredSlots={clinica.services.find(service => service.id === selectedServiceId) ? Math.ceil(clinica.services.find(service => service.id === selectedServiceId)!.duration / 30) : 1}
+                                    blockedTimes={blockedTimes}
+                                    avTimeSlots={avTimeSlots}
+                                    clinicaTimes={clinica.times}/>
+                                )
+                            }
+                            </div>
+                        </div>
+                    )}
 
-                    
+                    <div className="border-t pt-5">
+                        <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Forma de Pagamento</h2>
+                        <p className="text-sm text-gray-500 mt-2 mb-4">Pagamento realizado no dia da consulta</p>
+                    </div>
+
+                    <FormField control={form.control} name="paymentForm" render={({field}) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {PAYMENT_OPTIONS.map((option) => {
+                                        const isSelected = field.value === option.value;
+                                        const Icon = option.icon;
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => field.onChange(option.value)}
+                                                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <Icon className={`w-6 h-6 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`} />
+                                                <span className="font-semibold text-sm">{option.label}</span>
+                                                <span className="text-xs text-center">{option.description}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}/>
+
+                    {selectedPayment === 'credito' && (
+                        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm px-4 py-3 rounded-lg">
+                            <CreditCard className="w-4 h-4 shrink-0" />
+                            <span>Parcelamento em até <strong>10x sem juros</strong> no cartão de crédito.</span>
+                        </div>
+                    )}
+
+                    {alert && (
+                        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm ${
+                            alert.type === 'success'
+                                ? 'bg-green-50 border border-green-200 text-green-700'
+                                : 'bg-red-50 border border-red-200 text-red-700'
+                        }`}>
+                            {alert.type === 'success' ? (
+                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                            ) : (
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                            )}
+                            <span>{alert.message}</span>
+                        </div>
+                    )}
+
+                    {clinica.status ? (
+                    <Button
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold rounded-xl transition-colors"
+                        type="submit"
+                        disabled={submitting || !watch('name') || !watch('email') || !watch('phone') || !watch('date') || !watch('paymentForm')}
+                    >
+                        {submitting ? (
+                            <span className="flex items-center gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Agendando...
+                            </span>
+                        ) : (
+                            'Agendar Consulta'
+                        )}
+                    </Button>
+                    ): (
+                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>A clínica está fechada no momento.</span>
+                        </div>
+                    )}
+
                 </form>
             </Form>
             </section>

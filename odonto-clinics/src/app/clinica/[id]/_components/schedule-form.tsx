@@ -11,6 +11,7 @@ export const AppointmentSchema = z.object({
     phone: z.string().min(1, 'O telefone é obrigatório'),
     date: z.date(),
     serviceId: z.string().min(1, 'O serviço é obrigatório'),
+    paymentForm: z.string().min(1, 'A forma de pagamento é obrigatória'),
 })
 
 export type AppointmentFormData = z.infer<typeof AppointmentSchema>;
@@ -24,6 +25,7 @@ export function ScheduleForm() {
             phone: '',
             date: new Date(),
             serviceId: '',
+            paymentForm: '',
         }
     })
 }
