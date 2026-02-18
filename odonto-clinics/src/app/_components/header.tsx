@@ -14,6 +14,8 @@ import { LogIn, Menu } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { login } from "../_actions/login";
+import Image from "next/image";
+import Logo from "../../../public/logos.png";
 
 export function Header() {
     const {data: session, status} = useSession();
@@ -52,7 +54,7 @@ export function Header() {
         <header className="fixed top-0 right-0 left-0 z-[999] py-4 px-6 bg-black">
             <div className="container mx-auto flex items-center justify-between">
                 <Link href="/" className="text-3xl font-bold text-white" >
-                Logo
+                <Image src={Logo} alt="Logo da clínica" width={200} height={200}/>
                 </Link>
 
                 <nav className="hidden md:flex items-center text-white space-x-4">

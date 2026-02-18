@@ -51,17 +51,20 @@ export async function GET(request: NextRequest) {
             }
         })
 
+        function timeToMinutes(time: string): number {
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        }
+
         const blockedSlots = new Set<string>();
         for (const apt of appointments) {
-            const requiredSlot = Math.ceil(apt.service.duration / 30);
-            const startIndex = user.times.indexOf(apt.time);
+            const aptStartMin = timeToMinutes(apt.time);
+            const aptEndMin = aptStartMin + apt.service.duration;
 
-            if(startIndex !== -1) {
-                for(let i = 0; i < requiredSlot; i++) {
-                    const blocked = user.times[startIndex + 1];
-                    if(blocked) {
-                        blockedSlots.add(blocked);
-                    }
+            for (const time of user.times) {
+                const slotMin = timeToMinutes(time);
+                if (slotMin >= aptStartMin && slotMin < aptEndMin) {
+                    blockedSlots.add(time);
                 }
             }
         }

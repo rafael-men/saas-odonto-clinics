@@ -33,6 +33,49 @@ export async function createAppointment(FormData: FormSchema) {
         const day = selectedDate.getDate();
 
         const appointmentDate = new Date(year, month, day, 0, 0, 0, 0)
+        const startOfDay = new Date(year, month, day, 0, 0, 0, 0)
+        const endOfDay = new Date(year, month, day, 23, 59, 59, 999)
+
+        const user = await prisma.user.findFirst({
+            where: { id: FormData.clinicaId }
+        })
+
+        if (!user) {
+            return { error: "Clínica não encontrada" }
+        }
+
+        const existingAppointments = await prisma.appointments.findMany({
+            where: {
+                userId: FormData.clinicaId,
+                AppointmentDate: { gte: startOfDay, lte: endOfDay }
+            },
+            include: { service: true }
+        })
+
+        const service = await prisma.service.findFirst({
+            where: { id: FormData.serviceId }
+        })
+
+        if (!service) {
+            return { error: "Serviço não encontrado" }
+        }
+
+        function timeToMinutes(time: string): number {
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        const newStartMin = timeToMinutes(FormData.time);
+        const newEndMin = newStartMin + service.duration;
+
+        for (const apt of existingAppointments) {
+            const aptStartMin = timeToMinutes(apt.time);
+            const aptEndMin = aptStartMin + apt.service.duration;
+
+            if (newStartMin < aptEndMin && newEndMin > aptStartMin) {
+                return { error: `Conflito com agendamento existente às ${apt.time}` }
+            }
+        }
 
         const appointment = await prisma.appointments.create({
             data: {

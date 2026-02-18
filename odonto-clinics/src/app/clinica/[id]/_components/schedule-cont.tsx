@@ -81,11 +81,11 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
         setLoadingSlots(true);
         try {
             const dateString = date.toISOString().split('T')[0];
-            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/schedule/get-appointments?user-id=${clinica.id}&date=${dateString}`);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/schedule/appointments?userId=${clinica.id}&date=${dateString}`);
 
             const json = await response.json();
             setLoadingSlots(false);
-            return json;
+            return Array.isArray(json) ? json : [];
         }
         catch(err) {
             return [];
@@ -99,15 +99,26 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
             fetchBlockedTimes(selectedDate).then((blocked) => {
                 setBlockedTimes(blocked);
                 const times = clinica.times || [];
-                const finalSlots = times.map((time)=>({
-                    time: time,
-                    available: !blocked.includes(time)
-                }))
+                const now = new Date();
+                const isToday = selectedDate.toDateString() === now.toDateString();
+
+                const finalSlots = times.map((time) => {
+                    let available = !blocked.includes(time);
+
+                    if (isToday && available) {
+                        const [hours, minutes] = time.split(':').map(Number);
+                        const slotDate = new Date(selectedDate);
+                        slotDate.setHours(hours, minutes, 0, 0);
+                        available = slotDate > now;
+                    }
+
+                    return { time, available };
+                });
 
                 setAvTimeSlots(finalSlots);
             });
         }
-    },[clinica.times, fetchBlockedTimes,selectedTime])
+    },[clinica.times, fetchBlockedTimes, selectedDate])
 
     async function handleSchedule(FormData: AppointmentFormData) {
         setAlert(null);

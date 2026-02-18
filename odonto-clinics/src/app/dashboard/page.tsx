@@ -1,5 +1,9 @@
+import { Button } from "@/components/ui/button";
 import getSession from "@/lib/getSession";
+import { Calendar } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CopyLink } from "./_components/button-link";
 
 
 export default async function Dashboard() {
@@ -8,10 +12,21 @@ export default async function Dashboard() {
     redirect('/');  
   }
   return (
-    <div>
-      <h1>oppos</h1>
-      <div className="w-full h-[600px] bg-gray-300 mb-10 ">
+    <main>
+      <div className="space-x-2 flex items-center justify-end">
+        <Link href={`/clinica/${session.user?.id}`} target='_blank'>
+        <Button className="bg-emerald-500 hover:bg-emerald-400 flex-1 md:flex-[0]">
+          <Calendar className="w-5 h-5"/>
+          <span>Novo Agendamento</span>
+        </Button>
+        </Link>
+
+        <CopyLink userId={session.user?.id!}/>
       </div>
-    </div>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-4">
+          {/* Aqui você pode adicionar os componentes de agendamento e histórico */}
+      </section>
+    </main>
   )
 }
