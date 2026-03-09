@@ -13,23 +13,21 @@ import {
 import { LogIn, Menu } from "lucide-react"; 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { login } from "../_actions/login";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Logo from "../../../public/logos.png";
 
 export function Header() {
     const {data: session, status} = useSession();
     const [isOpen, setIsOpen] = useState(false)
+    const router = useRouter();
 
     const Items = [{href: '/profissionais',label: 'Profissionais'}]
 
-    const handleLogin = async () => {
-        await login('google');
-    }
     const Nav = () => (
         <>
         {Items.map((item) => (
-            <Button key={item.href} asChild className="bg-transparent hover:bg-transparent text-gray shadow-none" 
+            <Button key={item.href} asChild className="bg-transparent hover:bg-transparent text-gray shadow-none"
             onClick={()=> setIsOpen(false)}>
                 <Link href={item.href} className="text-base">
                 {item.label}
@@ -43,7 +41,7 @@ export function Header() {
             <Link href='/dashboard' className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-1 mr-2 px-2 rounded-md">
                 Acessar Clínica
             </Link>
-        ) : <Button onClick={handleLogin}>
+        ) : <Button onClick={() => router.push('/login')}>
             <LogIn/>
             Fazer Login
             </Button>}

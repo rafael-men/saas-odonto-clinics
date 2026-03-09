@@ -4,15 +4,18 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CopyLink } from "./_components/button-link";
+import { Reminder } from "../_components/reminder";
+import { PageHeader } from "./_components/PageHeader";
 
 
 export default async function Dashboard() {
   const session = await getSession();
-  if(!session){ 
-    redirect('/');  
+  if(!session){
+    redirect('/');
   }
   return (
     <main>
+      <PageHeader title="Agendamentos" userId={session.user?.id!} />
       <div className="space-x-2 flex items-center justify-end">
         <Link href={`/clinica/${session.user?.id}`} target='_blank'>
         <Button className="bg-emerald-500 hover:bg-emerald-400 flex-1 md:flex-[0]">
@@ -25,7 +28,8 @@ export default async function Dashboard() {
       </div>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-4">
-          {/* Aqui você pode adicionar os componentes de agendamento e histórico */}
+        <span>Agenda</span>
+        <Reminder userId={session.user?.id!}/>
       </section>
     </main>
   )

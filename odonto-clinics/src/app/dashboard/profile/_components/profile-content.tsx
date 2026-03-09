@@ -9,14 +9,15 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Dia
 import Image from "next/image";
 import Foto from  '../../../../../public/dentista-concentrada-em-um-check-up-dentario_1153-666.jpg';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, CheckCircle2, XCircle, DoorClosed } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, Loader2, CheckCircle2, XCircle, DoorClosed, Camera } from "lucide-react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { updateProfile } from "../_actions/update_prof";
+import { updateProfileImage } from "../_actions/update-image";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -54,6 +55,9 @@ export default function ProfileContent({user}: ProfileContentProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { update } = useSession();
   
 
@@ -73,6 +77,35 @@ export default function ProfileContent({user}: ProfileContentProps) {
         await signOut();
         await update();
         router.replace('/');
+    }
+
+    async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 500 * 1024) {
+            setFeedback({ type: 'error', message: 'Imagem deve ter no máximo 500KB' });
+            setTimeout(() => setFeedback(null), 4000);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const base64 = reader.result as string;
+            setPreviewImage(base64);
+            setUploadingImage(true);
+
+            const res = await updateProfileImage(base64);
+
+            setUploadingImage(false);
+            if (res.error) {
+                setFeedback({ type: 'error', message: res.error });
+            } else {
+                setFeedback({ type: 'success', message: 'Foto atualizada!' });
+            }
+            setTimeout(() => setFeedback(null), 4000);
+        };
+        reader.readAsDataURL(file);
     }
 
 
@@ -165,7 +198,29 @@ export default function ProfileContent({user}: ProfileContentProps) {
                         <CardContent className="space-y-6 ">
                             <div className="flex justify-center">
                                 <div className="relative h-40 w-40">
-                                    <Image src={user.image ? user.image : Foto} alt="foto da clinica" fill className="object-cover rounded-full" />
+                                    <Image
+                                        src={previewImage ?? (user.image ? user.image : Foto)}
+                                        alt="foto da clinica"
+                                        fill
+                                        className="object-cover rounded-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-md transition-colors"
+                                    >
+                                        {uploadingImage
+                                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                                            : <Camera className="w-4 h-4" />
+                                        }
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
                                 </div>
                             </div>
                             <div className="space-y-4">
