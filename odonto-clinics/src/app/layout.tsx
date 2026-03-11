@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionAuthProvider } from "@/components/session-auth";
+import { ToastProvider } from "@/components/toast-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,9 @@ export default function RootLayout({
         />
       </head>
       <body style={{ fontFamily: 'Elms Sans, sans-serif' }}>
-        <SessionAuthProvider>{children}</SessionAuthProvider>
+        <ToastProvider>
+          <SessionAuthProvider>{children}</SessionAuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

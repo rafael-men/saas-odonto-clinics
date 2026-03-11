@@ -5,40 +5,38 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle , DialogTrigger, DialogDescription} from '@/components/ui/dialog';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { PencilIcon, Plus, X, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { PencilIcon, Plus, X, Loader2 } from 'lucide-react';
 import { DialogServ } from './dialogServ';
 import { Service } from '@/generated/prisma/client';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { deleteService } from '../_actions/delete-service';
-import { cn } from '@/lib/utils';
+import { useToast } from '@/components/toast-provider';
 
 interface ServicesProps {
     services: Service[];
 }
 
 export function Services({services}: ServicesProps) {
+    const { addToast } = useToast();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
-    const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [editService, setEditService] = useState<Service | null>(null);
 
     async function handleDelete(serviceId: string) {
         setDeletingId(serviceId);
-        setFeedback(null);
 
         try {
             const response = await deleteService({serviceId});
 
             if (response.success) {
-                setFeedback({ type: 'success', message: response.message || 'Serviço deletado!' });
+                addToast(response.message || 'Serviço deletado com sucesso!', 'success');
             } else {
-                setFeedback({ type: 'error', message: response.error || 'Erro ao deletar' });
+                addToast(response.error || 'Erro ao deletar serviço', 'error');
             }
         } catch (error) {
-            setFeedback({ type: 'error', message: 'Erro inesperado. Tente novamente.' });
+            addToast('Erro inesperado. Tente novamente.', 'error');
         } finally {
             setDeletingId(null);
-            setTimeout(() => setFeedback(null), 3000);
         }
     }
 
@@ -68,21 +66,6 @@ export function Services({services}: ServicesProps) {
                         </DialogContent>
                     </CardHeader>
                     <CardContent>
-                        {feedback && (
-                            <div className={cn(
-                                "flex items-center gap-2 p-3 rounded-lg text-sm mb-4",
-                                feedback.type === 'success'
-                                    ? "bg-green-50 text-green-800 border border-green-200"
-                                    : "bg-red-50 text-red-800 border border-red-200"
-                            )}>
-                                {feedback.type === 'success'
-                                    ? <CheckCircle2 className="w-4 h-4" />
-                                    : <XCircle className="w-4 h-4" />
-                                }
-                                <span>{feedback.message}</span>
-                            </div>
-                        )}
-
                         <section className='space-y-4'>
                             {services.map((service) => (
                                 <article key={service.id} className='flex items-center justify-between'>

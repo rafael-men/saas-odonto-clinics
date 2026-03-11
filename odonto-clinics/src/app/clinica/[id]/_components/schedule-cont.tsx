@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "
 import { useCallback, useEffect, useState } from "react";
 import { ScheduleTime } from "./schedule-time";
 import { createAppointment } from "../_actions/create-appointment";
+import { useToast } from "@/components/toast-provider";
 
 
 
@@ -50,12 +51,12 @@ const PAYMENT_OPTIONS = [
 
 export function ScheduleContent({clinica}: scheduleContentProps) {
     const form = ScheduleForm();
+    const { addToast } = useToast();
     const { watch } = form;
     const [selectedTime, setSelectedTime] = useState('');
     const [avTimeSlots, setAvTimeSlots] = useState<TimeSlot[]>([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [blockedTimes, setBlockedTimes] = useState<string[]>([]);
-    const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const selectedDate = watch('date');
     const selectedServiceId = watch('serviceId');
@@ -121,10 +122,8 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
     },[clinica.times, fetchBlockedTimes, selectedDate])
 
     async function handleSchedule(FormData: AppointmentFormData) {
-        setAlert(null);
-
         if(!selectedTime) {
-            setAlert({ type: 'error', message: 'Selecione um horário para o agendamento.' });
+            addToast('Selecione um horário para o agendamento.', 'error');
             return;
         }
 
@@ -143,14 +142,14 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
             })
 
             if (response?.error) {
-                setAlert({ type: 'error', message: response.error });
+                addToast(response.error, 'error');
             } else {
-                setAlert({ type: 'success', message: 'Agendamento realizado com sucesso!' });
+                addToast('Agendamento realizado com sucesso!', 'success');
                 form.reset();
                 setSelectedTime('');
             }
         } catch {
-            setAlert({ type: 'error', message: 'Erro inesperado ao agendar. Tente novamente.' });
+            addToast('Erro inesperado ao agendar. Tente novamente.', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -342,21 +341,6 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                         <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm px-4 py-3 rounded-lg">
                             <CreditCard className="w-4 h-4 shrink-0" />
                             <span>Parcelamento em até <strong>10x sem juros</strong> no cartão de crédito.</span>
-                        </div>
-                    )}
-
-                    {alert && (
-                        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm ${
-                            alert.type === 'success'
-                                ? 'bg-green-50 border border-green-200 text-green-700'
-                                : 'bg-red-50 border border-red-200 text-red-700'
-                        }`}>
-                            {alert.type === 'success' ? (
-                                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                            ) : (
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                            )}
-                            <span>{alert.message}</span>
                         </div>
                     )}
 

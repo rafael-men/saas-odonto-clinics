@@ -9,8 +9,9 @@ import { currencyConverter } from '@/utils/currencyConverter';
 import { createService } from "../_actions/createService";
 import { updateService } from "../_actions/updateService";
 import { useState } from "react";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/toast-provider";
 
 interface DialogServProps {
     onSuccess?: () => void;
@@ -25,14 +26,13 @@ interface DialogServProps {
 
 export function DialogServ({ onSuccess, serviceId, initialValues }: DialogServProps) {
     const form = useDialogServForm({initialValues});
+    const { addToast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
-    const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
 
     const isEditing = !!serviceId;
 
     async function onsubmit(values: DialogServFormData) {
         setIsLoading(true);
-        setFeedback(null);
 
         const priceinCents = currencyConverter(values.price);
         const hours = parseInt(values.hours) || 0;
@@ -58,22 +58,18 @@ export function DialogServ({ onSuccess, serviceId, initialValues }: DialogServPr
             }
 
             if (response.success) {
-                setFeedback({
-                    type: 'success',
-                    message: response.message || (isEditing ? 'Serviço atualizado!' : 'Serviço adicionado!')
-                });
+                const message = response.message || (isEditing ? 'Serviço atualizado com sucesso!' : 'Serviço adicionado com sucesso!');
+                addToast(message, 'success');
                 if (!isEditing) form.reset();
                 setTimeout(() => {
                     onSuccess?.();
                 }, 1500);
             } else {
-                setFeedback({
-                    type: 'error',
-                    message: response.error || (isEditing ? 'Erro ao atualizar serviço' : 'Erro ao adicionar serviço')
-                });
+                const message = response.error || (isEditing ? 'Erro ao atualizar serviço' : 'Erro ao adicionar serviço');
+                addToast(message, 'error');
             }
         } catch (error) {
-            setFeedback({ type: 'error', message: 'Erro inesperado. Tente novamente.' });
+            addToast('Erro inesperado. Tente novamente.', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -164,20 +160,6 @@ export function DialogServ({ onSuccess, serviceId, initialValues }: DialogServPr
                         )}
                         />
                 </div>
-                {feedback && (
-                    <div className={cn(
-                        "flex items-center gap-2 p-3 rounded-lg text-sm",
-                        feedback.type === 'success'
-                            ? "bg-green-50 text-green-800 border border-green-200"
-                            : "bg-red-50 text-red-800 border border-red-200"
-                    )}>
-                        {feedback.type === 'success'
-                            ? <CheckCircle2 className="w-4 h-4" />
-                            : <XCircle className="w-4 h-4" />
-                        }
-                        <span>{feedback.message}</span>
-                    </div>
-                )}
 
                 <Button
                     type="submit"

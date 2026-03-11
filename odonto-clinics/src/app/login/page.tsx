@@ -10,32 +10,33 @@ import Image from "next/image";
 import Logo from "../../../public/icon.png";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/toast-provider";
 
 export default function LoginPage() {
+    const { addToast } = useToast();
     const [mode, setMode] = useState<'login' | 'register'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         try {
             if (mode === 'register') {
                 const res = await register(email, password, name);
                 if (res?.error) {
-                    setError(res.error);
+                    addToast(res.error, 'error');
                     setLoading(false);
                     return;
                 }
+                addToast('Conta criada com sucesso! Você será redirecionado...', 'success');
             }
             await loginWithCredentials(email, password);
         } catch {
-            setError('Email ou senha inválidos');
+            addToast('Email ou senha inválidos', 'error');
             setLoading(false);
         }
     }
@@ -96,12 +97,6 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    {error && (
-                        <p className="text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
-                            {error}
-                        </p>
-                    )}
-
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'login' ? 'Entrar' : 'Criar conta'}
                     </Button>
@@ -129,13 +124,13 @@ export default function LoginPage() {
                 <p className="text-center text-sm text-gray-500">
                     {mode === 'login' ? (
                         <>Não tem conta?{' '}
-                            <button onClick={() => { setMode('register'); setError(''); }} className="text-blue-600 font-medium hover:underline">
+                            <button onClick={() => setMode('register')} className="text-blue-600 font-medium hover:underline">
                                 Criar conta
                             </button>
                         </>
                     ) : (
                         <>Já tem conta?{' '}
-                            <button onClick={() => { setMode('login'); setError(''); }} className="text-blue-600 font-medium hover:underline">
+                            <button onClick={() => setMode('login')} className="text-blue-600 font-medium hover:underline">
                                 Entrar
                             </button>
                         </>

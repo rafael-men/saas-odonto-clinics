@@ -9,7 +9,7 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Dia
 import Image from "next/image";
 import Foto from  '../../../../../public/dentista-concentrada-em-um-check-up-dentario_1153-666.jpg';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, CheckCircle2, XCircle, DoorClosed, Camera } from "lucide-react";
+import { ArrowRight, Loader2, DoorClosed, Camera } from "lucide-react";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -20,6 +20,7 @@ import { updateProfile } from "../_actions/update_prof";
 import { updateProfileImage } from "../_actions/update-image";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/toast-provider";
 
 type User = Prisma.UserGetPayload<{}>;
 
@@ -51,10 +52,10 @@ interface ProfileContentProps {
 
 export default function ProfileContent({user}: ProfileContentProps) {
     const router = useRouter();
+    const { addToast } = useToast();
     const [selectedHours, setSelectedHours] = useState<string[]>(user.times ?? []);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [feedback, setFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,8 +85,7 @@ export default function ProfileContent({user}: ProfileContentProps) {
         if (!file) return;
 
         if (file.size > 500 * 1024) {
-            setFeedback({ type: 'error', message: 'Imagem deve ter no máximo 500KB' });
-            setTimeout(() => setFeedback(null), 4000);
+            addToast('Imagem deve ter no máximo 500KB', 'error');
             return;
         }
 
@@ -99,11 +99,10 @@ export default function ProfileContent({user}: ProfileContentProps) {
 
             setUploadingImage(false);
             if (res.error) {
-                setFeedback({ type: 'error', message: res.error });
+                addToast(res.error, 'error');
             } else {
-                setFeedback({ type: 'success', message: 'Foto atualizada!' });
+                addToast('Foto atualizada com sucesso!', 'success');
             }
-            setTimeout(() => setFeedback(null), 4000);
         };
         reader.readAsDataURL(file);
     }
@@ -161,7 +160,6 @@ export default function ProfileContent({user}: ProfileContentProps) {
 
     async function onSubmit(values: ProfileFormData) {
         setIsLoading(true);
-        setFeedback(null);
 
         try {
             const response = await updateProfile({
@@ -175,15 +173,14 @@ export default function ProfileContent({user}: ProfileContentProps) {
             });
 
             if (response.error) {
-                setFeedback({ type: 'error', message: response.error });
+                addToast(response.error, 'error');
             } else {
-                setFeedback({ type: 'success', message: response.message || 'Perfil atualizado com sucesso!' });
+                addToast(response.message || 'Perfil atualizado com sucesso!', 'success');
             }
         } catch (error) {
-            setFeedback({ type: 'error', message: 'Erro inesperado. Tente novamente.' });
+            addToast('Erro inesperado. Tente novamente.', 'error');
         } finally {
             setIsLoading(false);
-            setTimeout(() => setFeedback(null), 5000);
         }
     }
 
@@ -342,21 +339,6 @@ export default function ProfileContent({user}: ProfileContentProps) {
                                     )}
                                 />
 
-                             
-                                {feedback && (
-                                    <div className={cn(
-                                        "flex items-center gap-2 p-4 rounded-lg",
-                                        feedback.type === 'success'
-                                            ? "bg-green-50 text-green-800 border border-green-200"
-                                            : "bg-red-50 text-red-800 border border-red-200"
-                                    )}>
-                                        {feedback.type === 'success'
-                                            ? <CheckCircle2 className="w-5 h-5" />
-                                            : <XCircle className="w-5 h-5" />
-                                        }
-                                        <span>{feedback.message}</span>
-                                    </div>
-                                )}
                                 <Button
                                     type="submit"
                                     className="w-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
