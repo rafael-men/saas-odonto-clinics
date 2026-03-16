@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { CopyLink } from "./_components/button-link";
 import { Reminder } from "../_components/reminder";
 import { PageHeader } from "./_components/PageHeader";
+import Appointments from "../_components/appointments";
 
 
 export default async function Dashboard() {
@@ -28,7 +29,7 @@ export default async function Dashboard() {
       </div>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-4">
-        <span>Agenda</span>
+        <Appointments userId={session.user?.id!}/>
         <Reminder userId={session.user?.id!}/>
       </section>
     </main>
