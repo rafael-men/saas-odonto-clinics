@@ -11,9 +11,13 @@ import { Eye, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { cancelAppointment } from "@/app/_actions-appointments/cancel-appointment";
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { DialogAppointment } from "./appointment-dialog";
+import { ButtonCalendar } from "./button-calendar";
 
 
-type AppointmentWithServ = Prisma.AppointmentsGetPayload<{
+export type AppointmentWithServ = Prisma.AppointmentsGetPayload<{
     include: {
         service: true;
     }
@@ -27,6 +31,8 @@ export function AgendaList({times}: AgendaListProps) {
     const date = searchParams.get('date');
     const { addToast } = useToast();
     const queryClient = useQueryClient();
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [detailAppointment, setDetailAppointment] = useState<AppointmentWithServ | null>(null);
 
     const {data, isLoading} = useQuery({
         queryKey: ['get-appointments',date],
@@ -79,11 +85,13 @@ export function AgendaList({times}: AgendaListProps) {
         }
     }
     return (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl md:text-2xl font-bold">
                 Agendamentos
               </CardTitle>
+              <ButtonCalendar/>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-[calc(100vh-13rem)] lg:h-[calc(100vh-15rem)] pr-4">
@@ -113,9 +121,13 @@ export function AgendaList({times}: AgendaListProps) {
                                     </div>
                                     <div className="ml-auto">
                                         <div className="flex gap-4">
-                                            <Button variant='ghost' size='icon'>
+                                            <DialogTrigger asChild>
+                                                <Button variant='ghost' size='icon' onClick={() => {
+                                                    setDetailAppointment(occupant);
+                                                }}>
                                                 <Eye className="w-4 h-4"/>
                                             </Button>
+                                            </DialogTrigger>
                                             <Button variant='ghost' size='icon' onClick={() => HandleCancelAppointment(occupant.id)}>
                                                <X className="w-4 h-4"/>
                                             </Button>
@@ -139,5 +151,7 @@ export function AgendaList({times}: AgendaListProps) {
                 </ScrollArea>
             </CardContent>
         </Card>
+        <DialogAppointment appointment={detailAppointment}/>
+        </Dialog>
     )
 }
