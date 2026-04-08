@@ -12,7 +12,10 @@ export async function getServices({userId}: {userId: string}) {
         const services = await prisma.service.findMany({
             where: {
                 userId: userId,
-                status:true
+                status: true
+            },
+            include: {
+                professional: true,
             }
         })
 

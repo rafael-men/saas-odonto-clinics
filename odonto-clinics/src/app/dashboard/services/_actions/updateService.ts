@@ -9,7 +9,8 @@ const formSchema = z.object({
     serviceId: z.string().min(1, {message: "ID do serviço é obrigatório"}),
     name: z.string().min(1, {message: "O nome do serviço é obrigatório"}),
     price: z.number().min(1, {message: "O valor do serviço é obrigatório"}),
-    duration: z.number()
+    duration: z.number(),
+    professionalId: z.string().optional(),
 })
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -36,7 +37,8 @@ export async function updateService(formData: FormSchemaType) {
             data: {
                 name: schema.data.name,
                 price: schema.data.price,
-                duration: schema.data.duration
+                duration: schema.data.duration,
+                professionalId: schema.data.professionalId || null,
             }
         })
 

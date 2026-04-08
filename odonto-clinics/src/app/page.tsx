@@ -11,7 +11,7 @@ export default async function Home() {
    <Header/>
    <div className="pt-20">
     <Hero/>
-    <Clinics professionals={professionals}/>
+    <Clinics professionals={professionals} limit={5}/>
     <Footer/>
    </div>
    </div>

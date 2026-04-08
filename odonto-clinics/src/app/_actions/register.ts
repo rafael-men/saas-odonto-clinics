@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export async function register(email: string, password: string, name: string) {
+export async function register(email: string, password: string, name: string, address: string) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
         return { error: "Email já cadastrado" };
@@ -12,7 +12,7 @@ export async function register(email: string, password: string, name: string) {
     const hashed = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
-        data: { email, password: hashed, name },
+        data: { email, password: hashed, name, address },
     });
 
     return { success: true };

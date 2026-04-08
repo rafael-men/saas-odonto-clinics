@@ -46,11 +46,30 @@ model Service {
   duration      Int
   status        Boolean @default(true)
 
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
 
-  userId        String 
-  user User     @relation(fields: [userId],references: [id])
+  professionalId String?
+  professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: SetNull)
 
   appointments Appointments[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Professional {
+  id        String  @id @default(uuid())
+  name      String
+  crm       String
+  phone     String
+  whatsapp  String
+  photo     String?
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  services  Service[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,9 +93,10 @@ model User {
   Authenticator Authenticator[]
 
 
-  services Service[]
-  reminder Reminder[]
-  appointments Appointments[]
+  services      Service[]
+  reminder      Reminder[]
+  appointments  Appointments[]
+  professionals Professional[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

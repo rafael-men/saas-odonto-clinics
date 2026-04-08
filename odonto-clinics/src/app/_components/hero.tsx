@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 import HeroImage from '../../../public/hero.png';
 
 export function Hero() {
@@ -12,17 +13,17 @@ export function Hero() {
                             Temos o que você precisa para cuidar da sua saúde bucal.
                         </h1>
                         <p className="text-base md:text-lg">
-                            Uma plataforma especializada em atendimento odontológico 
-                            com agendamentos simplificados e que busca trazer a melhor 
+                            Uma plataforma especializada em atendimento odontológico
+                            com agendamentos simplificados e que busca trazer a melhor
                             qualidade e experiência.
                         </p>
-                        <Button className="bg-blue-500 text-white w-fit font-semibold">
-                            Encontre uma Clínica
+                        <Button asChild className="bg-blue-500 text-white w-fit font-semibold">
+                            <Link href="/clinicas">Encontre uma Clínica</Link>
                         </Button>
                     </div>
 
                     <div className="hidden lg:block">
-                        <Image src={HeroImage} alt="doctor" objectFit="object-contain" quality={100} priority={true}/>
+                        <Image src={HeroImage} alt="doctor" className="object-contain" priority={true}/>
                     </div>
                 </main>
             </div>

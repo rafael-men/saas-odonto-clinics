@@ -18,6 +18,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [address, setAddress] = useState('');
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
@@ -26,7 +27,7 @@ export default function LoginPage() {
 
         try {
             if (mode === 'register') {
-                const res = await register(email, password, name);
+                const res = await register(email, password, name, address);
                 if (res?.error) {
                     addToast(res.error, 'error');
                     setLoading(false);
@@ -60,16 +61,28 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {mode === 'register' && (
-                        <div className="space-y-1">
-                            <Label htmlFor="name">Nome</Label>
-                            <Input
-                                id="name"
-                                placeholder="Seu nome completo"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <>
+                            <div className="space-y-1">
+                                <Label htmlFor="name">Nome</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="Seu nome completo"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="address">Endereço</Label>
+                                <Input
+                                    id="address"
+                                    placeholder="Rua, número, bairro, cidade"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </>
                     )}
 
                     <div className="space-y-1">

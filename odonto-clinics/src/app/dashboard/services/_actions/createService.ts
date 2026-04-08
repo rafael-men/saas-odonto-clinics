@@ -8,7 +8,8 @@ import { revalidatePath } from "next/cache";
 const formSchema = z.object({
     name: z.string().min(1, {message: "O nome do serviço é obrigatório"}),
     price: z.number().min(1, {message: "O valor do serviço é obrigatório"}),
-    duration: z.number()
+    duration: z.number(),
+    professionalId: z.string().optional(),
 })
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -32,7 +33,8 @@ export async function createService(formData: FormSchemaType) {
                 name: schema.data.name,
                 price: schema.data.price,
                 duration: schema.data.duration,
-                userId: session.user.id
+                userId: session.user.id,
+                professionalId: schema.data.professionalId || null,
             }
         })
 

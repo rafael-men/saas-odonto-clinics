@@ -2,16 +2,14 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { CalendarCheck2, ChevronLast, ChevronLeft, ChevronRight, Folder, List, PersonStanding, Settings } from "lucide-react";
+import { CalendarCheck2, ChevronLeft, ChevronRight, Folder, List, PersonStanding, Settings, Stethoscope } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from '../../../../public/icon.png';
@@ -57,13 +55,16 @@ export function Sidebar({children} : {children : React.ReactNode}) {
 
             {Collapsed && (
                  <nav className="flex flex-col gap-1 overflow-hidden">
-                <SidebarNav href="/dashboard" label="Agendamentos" pathname={pathname} collapsed={Collapsed} 
+                <SidebarNav href="/dashboard" label="Agendamentos" pathname={pathname} collapsed={Collapsed}
                 icon={<CalendarCheck2 className="w-6 h-6"/>}/>
 
-                <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed} 
+                <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed}
                 icon={<Settings className="w-6 h-6"/>}/>
 
-                <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed} 
+                <SidebarNav href="/dashboard/profissionais" label="Profissionais" pathname={pathname} collapsed={Collapsed}
+                icon={<Stethoscope className="w-6 h-6"/>}/>
+
+                <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed}
                 icon={<PersonStanding className="w-6 h-6"/>}/>
                  </nav>
             )}
@@ -80,14 +81,17 @@ export function Sidebar({children} : {children : React.ReactNode}) {
                 <SidebarNav href="/dashboard" label="Agendamentos" pathname={pathname} collapsed={Collapsed} 
                 icon={<CalendarCheck2 className="w-6 h-6"/>}/>
 
-                <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed} 
+                <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed}
                 icon={<Settings className="w-6 h-6"/>}/>
+
+                <SidebarNav href="/dashboard/profissionais" label="Profissionais" pathname={pathname} collapsed={Collapsed}
+                icon={<Stethoscope className="w-6 h-6"/>}/>
 
                 <span className="text-sm text-gray-800 font-medium ">
                     Configurações
                 </span>
 
-                <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed} 
+                <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed}
                 icon={<PersonStanding className="w-6 h-6"/>}/>
                 
 
@@ -124,11 +128,14 @@ export function Sidebar({children} : {children : React.ReactNode}) {
                             <SidebarNav href="/dashboard" label="Agendamentos" pathname={pathname} collapsed={Collapsed} 
                             icon={<CalendarCheck2 className="w-6 h-6"/>}/>
 
-                            <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed} 
-                            icon={<Folder className="w-5 h-6"/> }/>
+                            <SidebarNav href="/dashboard/services" label="Serviços" pathname={pathname} collapsed={Collapsed}
+                            icon={<Folder className="w-5 h-6"/>}/>
 
-                            <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed} 
-                            icon={<Settings className="w-5 h-6"/> }/>
+                            <SidebarNav href="/dashboard/profissionais" label="Profissionais" pathname={pathname} collapsed={Collapsed}
+                            icon={<Stethoscope className="w-5 h-6"/>}/>
+
+                            <SidebarNav href="/dashboard/profile" label="Perfil" pathname={pathname} collapsed={Collapsed}
+                            icon={<Settings className="w-5 h-6"/>}/>
 
                         </nav>
                     </SheetContent>
