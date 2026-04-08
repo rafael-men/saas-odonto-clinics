@@ -141,10 +141,3 @@ npm run start  # Servidor de produção
 ```
 
 ---
-
-## Observações Técnicas
-
-- Imagens de perfil e fotos de profissionais são armazenadas como **base64** diretamente no banco (adequado para baixo volume; considere migrar para storage externo em produção)
-- O Prisma Client é gerado em `src/generated/prisma/` — após migrations, reinicie o servidor de desenvolvimento para recarregar o client
-- Autenticação com credentials usa bcrypt para hash de senhas
-- A agenda usa slots de 30 minutos como unidade base; a duração dos serviços determina quantos slots um agendamento ocupa
