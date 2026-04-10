@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "OdontoClinic",
   description: "Sistema de Clínicas Odontológicas",
   icons: {
-    icon: "/icon.png", 
+    icon: "/icon.png",
   },
 };
 

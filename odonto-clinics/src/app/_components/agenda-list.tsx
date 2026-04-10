@@ -72,7 +72,7 @@ export function AgendaList({ times }: AgendaListProps) {
         refetchInterval: 60000,
     });
 
-    // Map slots → appointment (accounting for duration)
+
     const occupantRecord: Record<string, AppointmentWithServ> = {};
     const appointmentStartSlot = new Set<string>();
 
@@ -105,8 +105,6 @@ export function AgendaList({ times }: AgendaListProps) {
     const isToday = activeDate === format(new Date(), 'yyyy-MM-dd');
     const dateLabel = format(parsedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
     const totalAppointments = data?.length ?? 0;
-
-    // Track which slots are continuations (not the start) to skip rendering
     const skippedSlots = new Set<string>();
     if (data && data.length > 0) {
         for (const appointment of data) {
@@ -151,7 +149,6 @@ export function AgendaList({ times }: AgendaListProps) {
                     </div>
                 </div>
 
-                {/* Timeline */}
                 <div className="overflow-y-auto flex-1">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
@@ -174,12 +171,9 @@ export function AgendaList({ times }: AgendaListProps) {
                                         className="flex min-h-[3.5rem]"
                                         style={occupant ? { minHeight: `${slotsCount * 3.5}rem` } : {}}
                                     >
-                                        {/* Time column */}
                                         <div className="w-16 shrink-0 flex items-start justify-center pt-3 text-xs font-medium text-gray-400 border-r bg-gray-50">
                                             {slot}
                                         </div>
-
-                                        {/* Content column */}
                                         <div className="flex-1 px-3 py-2 flex items-start">
                                             {occupant ? (
                                                 <div className={`flex-1 rounded-lg border-l-4 px-3 py-2 ${color} flex items-start justify-between gap-2`}>

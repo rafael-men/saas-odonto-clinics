@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Test from '../../../../../public/foto1.png';
-import { MapPin, Clock, DollarSign, CreditCard, QrCode, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, CreditCard, QrCode, AlertCircle, Loader2, LogIn, User } from "lucide-react";
 import { Prisma } from "@/generated/prisma/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -10,23 +10,28 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { AppointmentFormData, ScheduleForm } from "./schedule-form";
 import { DateTimePicker } from "./datePicker";
-import 'react-datepicker/dist/react-datepicker.css'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useCallback, useEffect, useState } from "react";
 import { ScheduleTime } from "./schedule-time";
 import { createAppointment } from "../_actions/create-appointment";
 import { useToast } from "@/components/toast-provider";
+import Link from "next/link";
 
 
 
 type UserWithService = Prisma.UserGetPayload<{
     include: {
-        services: true
+        services: {
+            include: {
+                professional: true
+            }
+        }
     }
 }>
 
 interface scheduleContentProps {
-    clinica: UserWithService
+    clinica: UserWithService;
+    patient?: { id: string; name: string; email: string; phone: string | null } | null;
 }
 
 export interface TimeSlot {
@@ -49,9 +54,18 @@ const PAYMENT_OPTIONS = [
     },
 ]
 
-export function ScheduleContent({clinica}: scheduleContentProps) {
+export function ScheduleContent({clinica, patient}: scheduleContentProps) {
     const form = ScheduleForm();
     const { addToast } = useToast();
+
+
+    useEffect(() => {
+        if (patient) {
+            form.setValue('name', patient.name);
+            form.setValue('email', patient.email);
+            if (patient.phone) form.setValue('phone', patient.phone);
+        }
+    }, [patient]);
     const { watch } = form;
     const [selectedTime, setSelectedTime] = useState('');
     const [avTimeSlots, setAvTimeSlots] = useState<TimeSlot[]>([]);
@@ -175,8 +189,26 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
             </section>
 
             <section className="max-w-2xl mx-auto w-full mt-8 pb-12">
+
+            {!patient && (
+                <div className="mx-4 mb-5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
+                    <div className="flex items-center gap-3 text-amber-800">
+                        <LogIn className="w-5 h-5 shrink-0 text-amber-500" />
+                        <p className="text-sm font-medium">
+                            Faça login para agendar sua consulta e acompanhar seus agendamentos.
+                        </p>
+                    </div>
+                    <Link
+                        href="/paciente/login"
+                        className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
+                    >
+                        Entrar / Cadastrar
+                    </Link>
+                </div>
+            )}
+
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSchedule)} className="mx-4 space-y-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <form onSubmit={form.handleSubmit(handleSchedule)} className={`mx-4 space-y-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative ${!patient ? 'pointer-events-none select-none opacity-50' : ''}`}>
 
                     <h2 className="text-lg font-semibold text-gray-800 border-b pb-3">Dados do Paciente</h2>
 
@@ -261,6 +293,12 @@ export function ScheduleContent({clinica}: scheduleContentProps) {
                                                         <DollarSign className="w-3 h-3" />
                                                         {(service.price / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                                     </span>
+                                                    {service.professional && (
+                                                        <span className="flex items-center gap-1">
+                                                            <User className="w-3 h-3" />
+                                                            {service.professional.name}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </SelectItem>

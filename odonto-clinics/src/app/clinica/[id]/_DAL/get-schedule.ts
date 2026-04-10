@@ -17,6 +17,9 @@ export async function getInfoSchedule({userId}:{userId: string}) {
                     services: {
                         where: {
                             status: true
+                        },
+                        include: {
+                            professional: true
                         }
                     }
                 }
