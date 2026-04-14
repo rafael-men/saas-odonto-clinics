@@ -9,7 +9,6 @@ const formSchema = z.object({
     address: z.string().optional(),
     phone: z.string().optional(),
     cpf: z.string().optional(),
-    status: z.boolean(),
     timeZone: z.string().min(1, {message:'Fuso Horário Obrigatório'}),
     times: z.array(z.string()),
 });
@@ -40,15 +39,13 @@ export async function updateProfile(data: FormSchemaType) {
                 address: schema.data.address,
                 phone: schema.data.phone,
                 cpf: schema.data.cpf,
-                status: schema.data.status,
                 timeZone: schema.data.timeZone,
                 times: schema.data.times,
             }
         });
 
         return { success: true , message: 'Clinica atualizada com sucesso!'};
-    } catch (err) {
-        console.error('Erro ao atualizar perfil:', err);
+    } catch {
         return { error: 'Erro ao atualizar perfil' };
     }
 }

@@ -1,143 +1,114 @@
-# Odonto Clinics — SaaS de Gestão Odontológica
+# OdontoClinic
 
-Plataforma SaaS para gestão de clínicas odontológicas, com agendamento online, gerenciamento de serviços, profissionais e lembretes.
+Plataforma SaaS para gerenciamento de clinicas odontologicas. Permite que clinicas cadastrem seus servicos, profissionais e horarios, enquanto pacientes agendam consultas, acompanham seus atendimentos e gerenciam sua conta.
 
----
+## Tecnologias
+
+- **Next.js 16** (App Router, Server Components, Server Actions)
+- **React 19** com React Hook Form + Zod
+- **Prisma 7** com PostgreSQL (Neon)
+- **NextAuth v5** (autenticacao de clinicas via Google OAuth)
+- **Tailwind CSS 3** + shadcn/ui
+- **TanStack React Query** para data fetching client-side
+- **Nodemailer** para envio de emails transacionais
+- **TypeScript**
 
 ## Funcionalidades
 
-### Área Pública
+### Pagina Publica
+- Hero com gradiente, esfera com imagem e call-to-action
+- Listagem de clinicas em destaque (limite de 5 na home, todas em `/clinicas`)
+- Busca e filtros por nome, endereco, periodo (manha/tarde/noite) e disponibilidade
+- Status "Aberta" / "Fechada" calculado automaticamente pelos horarios de funcionamento
+- Skeleton loading durante carregamento
 
-- Página inicial com apresentação da plataforma
-- Listagem de clínicas disponíveis com filtros por nome, localização, disponibilidade e horário de funcionamento (`/clinicas`)
-- Agendamento de consultas por pacientes sem necessidade de cadastro (`/clinica/[id]`)
+### Sistema de Pacientes
+- Cadastro e login com sessao via cookie httpOnly (separado do NextAuth das clinicas)
+- Validacao de email, senha (min. 6 caracteres, letras + numeros) e telefone com mascara brasileira
+- Pagina de consultas com secoes: Proximas, Historico e Canceladas
+- Cancelamento de consulta com modal de confirmacao e limite de 30 minutos de antecedencia
+- Redefinicao de senha via email com token expiravel (1 hora)
+- Pre-preenchimento do formulario de agendamento quando logado
+- Bloqueio de agendamento quando nao logado (formulario desabilitado + aviso)
+- Header exibe nome do paciente quando logado; botao "Acessar Minha Conta" escondido quando logado
 
-### Dashboard da Clínica
+### Agendamento
+- Selecao de data com react-datepicker (locale pt-BR)
+- Horarios disponiveis calculados em tempo real (exclui ocupados, passados e cancelados)
+- Deteccao de conflito de horarios com base na duracao do servico
+- Selecao de forma de pagamento (PIX ou Credito)
+- Redirecionamento para pagina de consultas apos agendar
+- Email de confirmacao enviado ao paciente com detalhes da consulta
 
-- **Agendamentos** — visualização estilo Google Calendar com navegação por dia, cores por evento e duração proporcional
-- **Serviços** — CRUD de serviços com nome, valor, duração e profissional responsável
-- **Profissionais** — CRUD de profissionais com foto (upload base64), CRM, telefone e WhatsApp
-- **Perfil** — edição de dados da clínica, horários disponíveis, fuso horário e imagem
+### Emails Transacionais
+- Confirmacao de agendamento
+- Confirmacao de cancelamento
+- Link de redefinicao de senha
+- Templates HTML com gradientes e layout responsivo
+- Configuracao via variaveis de ambiente SMTP (Gmail)
 
----
+### Dashboard da Clinica
+- Autenticacao via Google OAuth
+- Perfil: nome, endereco, CNPJ, telefone, foto (upload base64), fuso horario, horarios de funcionamento
+- Profissionais: CRUD com nome, CRM, telefone, WhatsApp (com mascara), foto
+- Servicos: CRUD com nome, preco, duracao, status e profissional associado
+- Agenda: visualizacao estilo Google Calendar com navegacao por dia
 
-## Stack
+### Rota Secreta
+- `/social` redireciona para `/login` (acesso ao dashboard das clinicas sem link visivel na UI)
 
-| Camada       | Tecnologia                            |
-| ------------ | ------------------------------------- |
-| Framework    | Next.js 16 (App Router)               |
-| Linguagem    | TypeScript 5                          |
-| Banco        | PostgreSQL (Neon)                     |
-| ORM          | Prisma 7                              |
-| Autenticação | NextAuth v5 (credentials + Google)    |
-| UI           | Tailwind CSS + shadcn/ui + Radix UI   |
-| Formulários  | React Hook Form + Zod                 |
-| Estado       | TanStack React Query                  |
-| Ícones       | Lucide React                          |
+## Variaveis de Ambiente
 
----
-
-## Estrutura do Projeto
-
-```text
-src/
-├── app/
-│   ├── _actions/              # Server actions globais (register, login)
-│   ├── _actions-appointments/ # Server actions de agendamentos
-│   ├── _components/           # Componentes da área pública
-│   ├── _data_access/          # Funções de acesso a dados (área pública)
-│   ├── api/                   # API Routes
-│   │   ├── auth/              # NextAuth handler
-│   │   ├── clinica/           # Agendamentos da clínica
-│   │   └── schedule/          # Slots bloqueados
-│   ├── clinica/[id]/          # Página de agendamento do paciente
-│   ├── clinicas/              # Listagem pública de clínicas com filtros
-│   ├── dashboard/             # Área restrita da clínica
-│   │   ├── page.tsx           # Agenda (Google Calendar style)
-│   │   ├── services/          # Gestão de serviços
-│   │   ├── profissionais/     # Gestão de profissionais
-│   │   └── profile/           # Perfil da clínica
-│   ├── login/                 # Login e registro
-│   └── social/                # Rota secreta → redireciona para /login
-├── components/ui/             # Componentes shadcn/ui
-├── generated/prisma/          # Client Prisma gerado
-└── lib/                       # Utilitários (prisma, auth, session)
-
-prisma/
-├── schema.prisma              # Schema do banco de dados
-└── migrations/                # Histórico de migrations
+```env
+DATABASE_URL="postgresql://..."
+AUTH_SECRET="..."
+AUTH_GOOGLE_ID="..."
+AUTH_GOOGLE_SECRET="..."
+NEXT_PUBLIC_URL="http://localhost:3000"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="465"
+SMTP_USER="seu-email@gmail.com"
+SMTP_PASS="sua-senha-de-app"
 ```
 
----
-
-## Modelos do Banco de Dados
-
-```prisma
-User          # Clínica/usuário — dados, horários, imagem
-Service       # Serviços da clínica com profissional associado
-Professional  # Profissionais (CRM, contato, foto)
-Appointments  # Agendamentos de pacientes
-Reminder      # Lembretes internos da clínica
-```
-
----
-
-## Configuração Local
-
-### Pré-requisitos
-
-- Node.js 18+
-- PostgreSQL (ou conta no [Neon](https://neon.tech))
-
-### Instalação
+## Como Rodar
 
 ```bash
-# Instalar dependências
 npm install
-
-# Configurar variáveis de ambiente
-cp .env.example .env
-# Edite o .env com suas credenciais
-
-# Rodar migrations
 npx prisma migrate dev
-
-# Gerar client Prisma
 npx prisma generate
-
-# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:3000`.
+## Estrutura do Projeto
 
----
-
-## Variáveis de Ambiente
-
-```env
-DATABASE_URL=          # String de conexão PostgreSQL
-NEXTAUTH_SECRET=       # Segredo para JWT do NextAuth
-NEXTAUTH_URL=          # URL base da aplicação (ex: http://localhost:3000)
-GOOGLE_CLIENT_ID=      # ID do app Google OAuth
-GOOGLE_CLIENT_SECRET=  # Secret do app Google OAuth
-NEXT_PUB=              # URL pública da API (mesmo valor que NEXTAUTH_URL)
+```
+src/
+  app/
+    _components/       # Componentes compartilhados (hero, header, footer, clinics, skeleton, badge)
+    _data_access/      # Data access layer publica
+    api/               # API routes (horarios de agendamento)
+    clinica/[id]/      # Pagina de agendamento por clinica
+    clinicas/          # Listagem de todas as clinicas com filtros
+    dashboard/         # Dashboard da clinica (perfil, servicos, profissionais, agenda)
+    paciente/          # Sistema de pacientes (login, consultas, redefinir senha)
+    social/            # Rota secreta de acesso ao dashboard
+  components/          # UI components (shadcn/ui, toast)
+  generated/prisma/    # Prisma client gerado
+  lib/                 # Auth, Prisma singleton, email service, utils
+  providers/           # QueryClient provider
+  utils/               # Utilitarios (currency converter, date picker)
+prisma/
+  schema.prisma        # Schema do banco de dados
+  migrations/          # Migracoes SQL
 ```
 
----
+## Modelos do Banco
 
-## Acesso ao Dashboard
-
-O acesso ao dashboard das clínicas é feito pela rota `/social`, que redireciona para a tela de login. Essa rota não está exposta na navegação pública.
-
----
-
-## Scripts
-
-```bash
-npm run dev    # Servidor de desenvolvimento (Webpack)
-npm run build  # Build de produção
-npm run start  # Servidor de produção
-```
-
----
+- **User** - Clinicas (autenticacao, perfil, horarios)
+- **Patient** - Pacientes (cadastro, login, sessao)
+- **Professional** - Profissionais da clinica (nome, CRM, contato, foto)
+- **Service** - Servicos (nome, preco, duracao, profissional)
+- **Appointments** - Agendamentos (paciente, clinica, servico, data, horario, status, pagamento)
+- **Reminder** - Lembretes da clinica
+- **PasswordResetToken** - Tokens de redefinicao de senha

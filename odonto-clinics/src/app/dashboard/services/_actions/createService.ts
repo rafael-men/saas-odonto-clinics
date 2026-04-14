@@ -46,8 +46,7 @@ export async function createService(formData: FormSchemaType) {
             data: service
         }
     }
-    catch (err) {
-        console.error("Erro ao criar serviço:", err);
+    catch {
         return {
             success: false,
             error: "Erro ao criar serviço. Tente novamente."

@@ -27,7 +27,6 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 
-// Hook para o formulário de perfil
 export function ProfileForm({name, address, phone, cpf, status, timeZone}: UserProfileFormProps) {
     return useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),

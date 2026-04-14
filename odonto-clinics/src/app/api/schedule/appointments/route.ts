@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
                 AppointmentDate: {
                     gte: start,
                     lte: end
-                }
+                },
+                status: { not: 'cancelled' }
             },
             include: {
                 service: true,
@@ -75,8 +76,7 @@ export async function GET(request: NextRequest) {
 
 
     }
-    catch (err) {
-        console.log(err);
+    catch {
         return NextResponse.json({
             error: 'Nenhum agendamento encontrado'
         },{

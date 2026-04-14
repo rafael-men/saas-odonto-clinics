@@ -50,8 +50,7 @@ export async function updateService(formData: FormSchemaType) {
             data: service
         }
     }
-    catch (err) {
-        console.error("Erro ao atualizar serviço:", err);
+    catch {
         return {
             success: false,
             error: "Erro ao atualizar serviço. Tente novamente."

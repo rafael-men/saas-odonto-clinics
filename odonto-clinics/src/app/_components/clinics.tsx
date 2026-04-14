@@ -4,12 +4,14 @@ import { User } from "@/generated/prisma/client";
 import { MapPin, Phone, Clock, ArrowRight, CalendarCheck } from "lucide-react";
 import Foto from "../../../public/dentista-concentrada-em-um-check-up-dentario_1153-666.jpg";
 import { ClinicGridSkeleton } from "./clinic-card-skeleton";
+import { ClinicStatusBadge } from "./clinic-status-badge";
 import { Suspense } from "react";
 
 interface ProfessionalProps {
   professionals: User[];
   limit?: number;
 }
+
 
 export function Clinics({ professionals, limit }: ProfessionalProps) {
   const list = limit ? professionals.slice(0, limit) : professionals;
@@ -52,10 +54,7 @@ export function Clinics({ professionals, limit }: ProfessionalProps) {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  <span className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-emerald-600 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Disponível
-                  </span>
+                  <ClinicStatusBadge times={clinic.times} />
                 </div>
 
                 <div className="p-5 flex flex-col flex-1 gap-3">

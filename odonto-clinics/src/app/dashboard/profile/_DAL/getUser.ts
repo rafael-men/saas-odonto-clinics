@@ -24,8 +24,7 @@ export default async function getUser({userId}: getUserProps) {
         return user;    
       }
     }
-    catch (error) {
-        console.log("Usuário não Encontrado:", error)
+    catch {
         return null
     }
 }

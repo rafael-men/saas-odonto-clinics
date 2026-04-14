@@ -1,6 +1,9 @@
 'use server'
 
 import prisma from "@/lib/prisma";
+import { sendAppointmentConfirmationEmail } from "@/lib/email";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { z } from "zod";
 
 const CreateAppointmentSchema = z.object({
@@ -89,6 +92,17 @@ export async function createAppointment(FormData: FormSchema) {
                 paymentForm: FormData.paymentForm
             }
         })
+
+        sendAppointmentConfirmationEmail({
+            patientName: FormData.name,
+            patientEmail: FormData.email,
+            clinicName: user.name || 'Clínica',
+            serviceName: service.name,
+            date: format(appointmentDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+            time: FormData.time,
+            paymentForm: FormData.paymentForm,
+            appointmentId: appointment.id,
+        });
 
         return {
             data: appointment

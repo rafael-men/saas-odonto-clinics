@@ -12,6 +12,7 @@ import { AppointmentFormData, ScheduleForm } from "./schedule-form";
 import { DateTimePicker } from "./datePicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ScheduleTime } from "./schedule-time";
 import { createAppointment } from "../_actions/create-appointment";
 import { useToast } from "@/components/toast-provider";
@@ -57,6 +58,7 @@ const PAYMENT_OPTIONS = [
 export function ScheduleContent({clinica, patient}: scheduleContentProps) {
     const form = ScheduleForm();
     const { addToast } = useToast();
+    const router = useRouter();
 
 
     useEffect(() => {
@@ -158,9 +160,8 @@ export function ScheduleContent({clinica, patient}: scheduleContentProps) {
             if (response?.error) {
                 addToast(response.error, 'error');
             } else {
-                addToast('Agendamento realizado com sucesso!', 'success');
-                form.reset();
-                setSelectedTime('');
+                addToast('Agendamento realizado com sucesso! Redirecionando...', 'success');
+                router.push('/paciente/consultas');
             }
         } catch {
             addToast('Erro inesperado ao agendar. Tente novamente.', 'error');
@@ -253,9 +254,9 @@ export function ScheduleContent({clinica, patient}: scheduleContentProps) {
                     </div>
 
                      <FormField control={form.control} name="date" render={({field}) => (
-                        <FormItem className="flex items-center gap-2 space-y-1">
+                        <FormItem>
                             <FormLabel className="font-semibold text-gray-700">Data</FormLabel>
-                            <FormControl >
+                            <FormControl>
                             <DateTimePicker
                             initialDate={new Date()}
                             className="w-full rounded border p-3"

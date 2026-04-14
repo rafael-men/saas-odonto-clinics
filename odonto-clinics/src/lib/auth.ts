@@ -32,7 +32,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ],
     callbacks: {
         async signIn({ user, account }) {
-            // Para Google: cria ou atualiza o usuário no banco manualmente
             if (account?.provider === "google" && user.email) {
                 const existing = await prisma.user.findUnique({
                     where: { email: user.email },

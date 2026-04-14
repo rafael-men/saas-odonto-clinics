@@ -146,7 +146,7 @@ export default function PatientLoginPage() {
                             <p className="text-xs text-red-500 mt-1">{errors.email}</p>
                         )}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 pb-0">
                         <Label>Senha</Label>
                         <Input
                             type="password"
@@ -163,6 +163,14 @@ export default function PatientLoginPage() {
                             <p className="text-xs text-gray-400 mt-1">Mínimo 6 caracteres, com letras e números.</p>
                         )}
                     </div>
+
+                    {mode === 'login' && (
+                        <div className="text-right">
+                            <Link href="/paciente/redefinir-senha" className="text-xs text-blue-600 hover:underline">
+                                Esqueci minha senha
+                            </Link>
+                        </div>
+                    )}
 
                     <Button
                         type="submit"
@@ -184,10 +192,6 @@ export default function PatientLoginPage() {
                         </>
                     )}
                 </p>
-
-                <div className="text-center">
-                    <Link href="/" className="text-xs text-gray-400 hover:text-gray-600">← Voltar para o início</Link>
-                </div>
             </div>
         </div>
     );

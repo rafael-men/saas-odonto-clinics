@@ -40,7 +40,6 @@ const profileSchema = z.object({
         .refine((val) => !val || val.replace(/\D/g, '').length === 14, {
             message: 'CNPJ deve ter 14 dígitos'
         }),
-    status: z.string(),
     timeZone: z.string().min(1, { message: 'Selecione um fuso horário' }),
 });
 
@@ -69,7 +68,6 @@ export default function ProfileContent({user}: ProfileContentProps) {
             address: user.address || '',
             phone: user.phone || '',
             cpf: user.cpf || '',
-            status: user.status ? 'active' : 'inactive',
             timeZone: user.timeZone || ''
         }
     });
@@ -167,7 +165,6 @@ export default function ProfileContent({user}: ProfileContentProps) {
                 address: values.address,
                 phone: values.phone,
                 cpf: values.cpf,
-                status: values.status === 'active' ? true : false,
                 timeZone: values.timeZone,
                 times: selectedHours || []
             });
@@ -266,25 +263,6 @@ export default function ProfileContent({user}: ProfileContentProps) {
                                                 <Input {...field} placeholder="Insira seu Telefone" onChange={(e)=> field.onChange(formatPhone(e.target.value)) } />
                                             </FormControl>
                                             <FormMessage />
-                                        </FormItem>    
-                                    )}
-                                />
-                                 <FormField control={form.control}
-                                    name="status"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel className="font-semibold">Status</FormLabel>
-                                            <FormControl>
-                                                <Select  onValueChange={field.onChange} defaultValue={field.value ? 'active' : 'inactive'}>
-                                                    <SelectTrigger>
-                                                    <SelectValue placeholder="Selecione o Status Atual" {...field} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="active">Ativo - Clínica Aberta</SelectItem>
-                                                    <SelectItem value="inactive">Inativo - Clínica Fechada</SelectItem>
-                                                </SelectContent>  
-                                                </Select>                                          
-                                            </FormControl>
                                         </FormItem>    
                                     )}
                                 />

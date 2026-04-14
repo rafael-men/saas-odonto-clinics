@@ -44,8 +44,7 @@ export async function deleteService(formData: FormSchemaType) {
             data: service
         }
     }
-    catch (err) {
-        console.error("Erro ao deletar serviço:", err);
+    catch {
         return {
             success: false,
             error: "Erro ao deletar serviço. Tente novamente."

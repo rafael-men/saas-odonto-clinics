@@ -8,6 +8,7 @@ import Link from "next/link";
 import Foto from "../../../../public/dentista-concentrada-em-um-check-up-dentario_1153-666.jpg";
 import { Search, MapPin, Clock, Wifi, CalendarCheck, Phone, SlidersHorizontal } from "lucide-react";
 import { ClinicGridSkeleton } from "@/app/_components/clinic-card-skeleton";
+import { ClinicStatusBadge, isClinicOpen } from "@/app/_components/clinic-status-badge";
 
 interface Props {
   professionals: User[];
@@ -22,6 +23,8 @@ const TIME_OPTIONS = [
 function timeInRange(time: string, from: string, to: string) {
   return time >= from && time <= to;
 }
+
+
 
 export function ClinicasContent({ professionals }: Props) {
   const [search, setSearch] = useState("");
@@ -43,7 +46,7 @@ export function ClinicasContent({ professionals }: Props) {
         clinic.name?.toLowerCase().includes(term) ||
         clinic.address?.toLowerCase().includes(term);
 
-      const matchesAvailable = !onlyAvailable || clinic.status === true;
+      const matchesAvailable = !onlyAvailable || isClinicOpen(clinic.times);
 
       const matchesPeriod =
         !selectedPeriod ||
@@ -142,11 +145,7 @@ export function ClinicasContent({ professionals }: Props) {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  <span className={`absolute top-3 right-3 flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm
-                    ${clinic.status ? "bg-white/90 text-emerald-600" : "bg-white/90 text-gray-400"}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${clinic.status ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`} />
-                    {clinic.status ? "Disponível" : "Fechado"}
-                  </span>
+                  <ClinicStatusBadge times={clinic.times} />
                 </div>
 
                 <div className="p-5 flex flex-col flex-1 gap-3">
