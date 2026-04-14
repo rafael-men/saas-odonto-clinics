@@ -1,6 +1,6 @@
 # OdontoClinic
 
-Plataforma SaaS para gerenciamento de clinicas odontologicas. Permite que clinicas cadastrem seus servicos, profissionais e horarios, enquanto pacientes agendam consultas, acompanham seus atendimentos e gerenciam sua conta.
+Plataforma SaaS para gerenciamento de clinicas odontologicas. Permite que clinicas cadastrem seus serviços, profissionais e horarios, enquanto pacientes agendam consultas, acompanham seus atendimentos e gerenciam sua conta.
 
 ## Tecnologias
 
